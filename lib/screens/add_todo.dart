@@ -49,7 +49,8 @@ class _AddTodoPageState extends State<AddTodoPage> {
                 padding: const EdgeInsets.all(20),
               ),
               onPressed: () {
-                submitData();
+                fetchTodo();
+                //submitData();
               },
               child: const Text("Submit")),
         ],
@@ -105,4 +106,12 @@ class _AddTodoPageState extends State<AddTodoPage> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snakbar);
   }
+
+ Future<void> fetchTodo() async{
+  const url='https://api.nstack.in/v1/todos?page=1&limit=10';
+  final uri=Uri.parse(url);
+  final response= await http.get(uri);
+  print(response.body);
+ }
+
 }
