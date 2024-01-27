@@ -16,6 +16,9 @@ class LodoListPage extends StatefulWidget {
 
 class _LodoListPageState extends State<LodoListPage> {
   List items = [];
+
+  bool isLoading = false;
+
   @override
   void initState() {
     // TODO: implement initState
@@ -30,18 +33,29 @@ class _LodoListPageState extends State<LodoListPage> {
         centerTitle: true,
         title: const Text("Todo List"),
       ),
-      body: ListView.builder(
-        itemCount: items.length,
-        itemBuilder: (BuildContext context, int index) {
-          final item = items[index] as Map;
-          return Card(
-            child: ListTile(
-              leading: CircleAvatar(child: Text("${index+1}")),
-              title: Text(item["title"]),
-              subtitle: Text(item['description']),
-            ),
-          );
-        },
+      body: Visibility(
+        visible: isLoading,
+        // ignore: sort_child_properties_last
+        child: const Center(
+          child: CircularProgressIndicator(),
+        ),
+        replacement: RefreshIndicator(
+          onRefresh: fetchTodo,
+          child: ListView.builder(
+            scrollDirection: Axis.vertical,
+            itemCount: items.length,
+            itemBuilder: (BuildContext context, int index) {
+              final item = items[index] as Map;
+              return Card(
+                child: ListTile(
+                  leading: CircleAvatar(child: Text("${index + 1}")),
+                  title: Text(item["title"]),
+                  subtitle: Text(item['description']),
+                ),
+              );
+            },
+          ),
+        ),
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
@@ -68,6 +82,10 @@ class _LodoListPageState extends State<LodoListPage> {
       setState(() {
         items = result;
       });
-    } else {}
+     // print(items);
+    }
+    setState(() {
+      isLoading = false;
+    });
   }
 }

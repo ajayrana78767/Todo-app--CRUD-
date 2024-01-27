@@ -49,8 +49,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
                 padding: const EdgeInsets.all(20),
               ),
               onPressed: () {
-                fetchTodo();
-                //submitData();
+                submitData();
               },
               child: const Text("Submit")),
         ],
@@ -67,13 +66,13 @@ class _AddTodoPageState extends State<AddTodoPage> {
       "description": description,
       "is_completed": false,
     };
-    const url = "https://api.nstack.in/v1/todos";
+    final url = "https://api.nstack.in/v1/todos";
     final uri = Uri.parse(url);
     final response = await http.post(uri,
         body: jsonEncode(body), headers: {'Content-Type': 'application/json'});
     if (response.statusCode == 201) {
-      titleEditingController.text='';
-      descriptionEditingController.text='';
+      titleEditingController.text = '';
+      descriptionEditingController.text = '';
       showSuccessMessage(
         "creation success",
       );
@@ -81,7 +80,7 @@ class _AddTodoPageState extends State<AddTodoPage> {
       showErrorMessage("creation failed");
     }
 
-    print(response.statusCode);
+    //print(response.statusCode);
     print(response.body);
   }
 
@@ -106,12 +105,4 @@ class _AddTodoPageState extends State<AddTodoPage> {
     );
     ScaffoldMessenger.of(context).showSnackBar(snakbar);
   }
-
- Future<void> fetchTodo() async{
-  const url='https://api.nstack.in/v1/todos?page=1&limit=10';
-  final uri=Uri.parse(url);
-  final response= await http.get(uri);
-  print(response.body);
- }
-
 }
