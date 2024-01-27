@@ -51,6 +51,13 @@ class _LodoListPageState extends State<LodoListPage> {
                   leading: CircleAvatar(child: Text("${index + 1}")),
                   title: Text(item["title"]),
                   subtitle: Text(item['description']),
+                  trailing: PopupMenuButton(itemBuilder: (context){
+                    return [
+                    const PopupMenuItem(child: Text("Edit"),),
+                    const PopupMenuItem(child: Text("Delete"),),
+
+                    ];
+                  }),
                 ),
               );
             },
