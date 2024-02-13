@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 import 'dart:js';
+import 'dart:js_util';
 
 import 'package:flutter/material.dart';
 import 'package:todo_app/screens/add_todo.dart';
@@ -15,6 +16,7 @@ class LodoListPage extends StatefulWidget {
 }
 
 class _LodoListPageState extends State<LodoListPage> {
+  
   List items = [];
 
   bool isLoading = false;
@@ -23,6 +25,7 @@ class _LodoListPageState extends State<LodoListPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
+   // isLoading=true;
     fetchTodo();
   }
 
@@ -30,6 +33,7 @@ class _LodoListPageState extends State<LodoListPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         centerTitle: true,
         title: const Text("Todo List"),
       ),
@@ -46,16 +50,29 @@ class _LodoListPageState extends State<LodoListPage> {
             itemCount: items.length,
             itemBuilder: (BuildContext context, int index) {
               final item = items[index] as Map;
+              final id = item['_id'] as String;
               return Card(
                 child: ListTile(
                   leading: CircleAvatar(child: Text("${index + 1}")),
                   title: Text(item["title"]),
                   subtitle: Text(item['description']),
-                  trailing: PopupMenuButton(itemBuilder: (context){
+                  trailing: PopupMenuButton(onSelected: (value) {
+                    if (value == 'Edit') {
+                      // open edit page
+                    } else if (value == 'Delete') {
+                      //remove and refresh the page
+                      deleteByID(id);
+                    }
+                  }, itemBuilder: (context) {
                     return [
-                    const PopupMenuItem(child: Text("Edit"),),
-                    const PopupMenuItem(child: Text("Delete"),),
-
+                      const PopupMenuItem(
+                        value: 'Edit',
+                        child: Text("Edit"),
+                      ),
+                      const PopupMenuItem(
+                        value: 'Delete',
+                        child: Text("Delete"),
+                      ),
                     ];
                   }),
                 ),
@@ -78,7 +95,27 @@ class _LodoListPageState extends State<LodoListPage> {
     Navigator.push(context, route);
   }
 
+  Future<void> deleteByID(String id) async {
+    // delete the item
+    final url = 'https://api.nstack.in/v1/todos/$id';
+    final uri = Uri.parse(url);
+    final response = await http.delete(uri);
+    if (response.statusCode == 200) {
+      // remove item from the list
+      final filtered = items.where((element) => element['_id'] != id).toList();
+
+      setState(() {
+        items = filtered;
+      });
+    } else {
+      showErrorMessage('Deletion failed');
+    }
+  }
+
   Future<void> fetchTodo() async {
+    setState(() {
+    isLoading = true; // Set isLoading to true before fetching data
+  });
     const url = 'https://api.nstack.in/v1/todos?page=1&limit=10';
     final uri = Uri.parse(url);
     final response = await http.get(uri);
@@ -89,10 +126,21 @@ class _LodoListPageState extends State<LodoListPage> {
       setState(() {
         items = result;
       });
-     // print(items);
+      // print(items);
     }
     setState(() {
       isLoading = false;
     });
+  }
+
+  void showErrorMessage(String message) {
+    final snakbar = SnackBar(
+      content: Text(
+        message,
+        style: const TextStyle(color: Colors.white),
+      ),
+      backgroundColor: (Colors.red),
+    );
+    ScaffoldMessenger.of(context as BuildContext).showSnackBar(snakbar);
   }
 }
