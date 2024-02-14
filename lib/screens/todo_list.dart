@@ -1,7 +1,7 @@
 // ignore_for_file: unused_local_variable, avoid_web_libraries_in_flutter, unused_import, avoid_print
 
 import 'dart:convert';
-import 'dart:js';
+//import 'dart:js';
 import 'dart:js_util';
 
 import 'package:flutter/material.dart';
@@ -9,14 +9,13 @@ import 'package:todo_app/screens/add_todo.dart';
 import 'package:http/http.dart' as http;
 
 class LodoListPage extends StatefulWidget {
-  const LodoListPage({super.key});
+  const LodoListPage({Key? key}) : super(key: key);
 
   @override
   State<LodoListPage> createState() => _LodoListPageState();
 }
 
 class _LodoListPageState extends State<LodoListPage> {
-  
   List items = [];
 
   bool isLoading = false;
@@ -25,7 +24,7 @@ class _LodoListPageState extends State<LodoListPage> {
   void initState() {
     // TODO: implement initState
     super.initState();
-   // isLoading=true;
+    // isLoading=true;
     fetchTodo();
   }
 
@@ -58,6 +57,7 @@ class _LodoListPageState extends State<LodoListPage> {
                   subtitle: Text(item['description']),
                   trailing: PopupMenuButton(onSelected: (value) {
                     if (value == 'Edit') {
+                      navigateToEditPage(item);
                       // open edit page
                     } else if (value == 'Delete') {
                       //remove and refresh the page
@@ -83,16 +83,28 @@ class _LodoListPageState extends State<LodoListPage> {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {
-          navigateToAddTodoPage(context);
+          navigateToAddTodoPage();
         },
         label: const Text("Add Todo"),
       ),
     );
   }
 
-  void navigateToAddTodoPage(context) {
+  void navigateToEditPage(Map item) async {
+    final route =
+        MaterialPageRoute(builder: (context) => AddTodoPage(todo: item));
+    await Navigator.push(context, route);
+    // Refresh data after returning from the edit page
+    //setState(() {});
+  }
+
+  Future<void> navigateToAddTodoPage() async {
     final route = MaterialPageRoute(builder: (context) => const AddTodoPage());
-    Navigator.push(context, route);
+    await Navigator.push(context, route); // Remove 'as BuildContext' here
+    setState(() {
+      isLoading = true;
+    });
+    fetchTodo();
   }
 
   Future<void> deleteByID(String id) async {
@@ -114,8 +126,8 @@ class _LodoListPageState extends State<LodoListPage> {
 
   Future<void> fetchTodo() async {
     setState(() {
-    isLoading = true; // Set isLoading to true before fetching data
-  });
+      isLoading = true; // Set isLoading to true before fetching data
+    });
     const url = 'https://api.nstack.in/v1/todos?page=1&limit=10';
     final uri = Uri.parse(url);
     final response = await http.get(uri);
@@ -141,6 +153,6 @@ class _LodoListPageState extends State<LodoListPage> {
       ),
       backgroundColor: (Colors.red),
     );
-    ScaffoldMessenger.of(context as BuildContext).showSnackBar(snakbar);
+    ScaffoldMessenger.of(context).showSnackBar(snakbar);
   }
 }
