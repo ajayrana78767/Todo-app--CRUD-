@@ -1,11 +1,8 @@
 // ignore_for_file: unused_local_variable, avoid_print, use_build_context_synchronously, unused_field, override_on_non_overriding_member, annotate_overrides, non_constant_identifier_names
-
-import 'dart:convert';
-
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:todo_app/screens/todo_list.dart';
-//import 'package:todo_app/screens/todo_list.dart';
+import 'package:todo_app/services/todo_services.dart';
+import 'package:todo_app/util/snaakbar_helper.dart';
 
 class AddTodoPage extends StatefulWidget {
   final Map? todo;
@@ -95,14 +92,10 @@ class _AddTodoPageState extends State<AddTodoPage> {
                 onPressed: () {
                   if (isEdit) {
                     updateData();
+                   // showSuccessMessage(context, message: "updation success");
                   } else if (_formKey.currentState!.validate()) {
                     submitData();
                   }
-                  // if (_formKey.currentState!.validate()) {
-                  //   submitData();
-                  // } else {
-                  //   return;
-                  // }
                 },
                 child: Text(isEdit ? "update" : "Submit")),
           ],
@@ -121,97 +114,40 @@ class _AddTodoPageState extends State<AddTodoPage> {
     //final iscompleted = todo["is_completed"];
     final title = titleEditingController.text;
     final description = descriptionEditingController.text;
-    final body = {
-      "title": title,
-      "description": description,
-      "is_completed": false,
-    };
-    // submit updated data to the server
-    final url = "https://api.nstack.in/v1/todos/$id";
-    final uri = Uri.parse(url);
-    final response = await http.put(uri,
-        body: jsonEncode(body), headers: {'Content-Type': 'application/json'});
-    if (response.statusCode == 200) {
-      showSuccessMessage(
-        "updation success",
-      );
+    // final body = {
+    //   "title": title,
+    //   "description": description,
+    //   "is_completed": false,
+    // };
+    final isSuccess = await TodoService.updateData(id, body);
+    if (isSuccess) {
+      showSuccessMessage(context, message: "updation success");
     } else {
-      showErrorMessage("updation failed");
+      showErrorMessage(context, message: "updation failed");
     }
   }
 
   Future<void> submitData() async {
+    final isSuccess = await TodoService.submitData(body);
+    if (isSuccess) {
+      titleEditingController.text = '';
+      descriptionEditingController.text = '';
+
+      showSuccessMessage(context, message: "creation success");
+      //Navigator.push(context, MaterialPageRoute(builder: (context)=>const LodoListPage()));
+    } else {
+      showErrorMessage(context, message: "creation failed");
+    }
+  }
+
+  Map get body {
     final title = titleEditingController.text;
     final description = descriptionEditingController.text;
 
-    final body = {
+    return {
       "title": title,
       "description": description,
       "is_completed": false,
     };
-    const url = "https://api.nstack.in/v1/todos";
-    final uri = Uri.parse(url);
-    final response = await http.post(uri,
-        body: jsonEncode(body), headers: {'Content-Type': 'application/json'});
-    if (response.statusCode == 201) {
-      titleEditingController.text = '';
-      descriptionEditingController.text = '';
-      showSuccessMessage(
-        "creation success",
-      );
-      //Navigator.push(context, MaterialPageRoute(builder: (context)=>const LodoListPage()));
-    } else {
-      showErrorMessage("creation failed");
-    }
-
-    //print(response.statusCode);
-    //print(response.body);
   }
-
-  void showSuccessMessage(String message) {
-    if (mounted) {
-      final snakbar = SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: (Colors.green),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snakbar);
-    }
-  }
-
-  void showErrorMessage(String message) {
-    if (mounted) {
-      final snakbar = SnackBar(
-        content: Text(
-          message,
-          style: const TextStyle(color: Colors.white),
-        ),
-        backgroundColor: (Colors.red),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snakbar);
-    }
-  }
-  // void showSuccessMessage(String message) {
-  //   final snakbar = SnackBar(
-  //     content: Text(
-  //       message,
-  //       style: const TextStyle(color: Colors.white),
-  //     ),
-  //     backgroundColor: (Colors.green),
-  //   );
-  //   ScaffoldMessenger.of(context).showSnackBar(snakbar);
-  // }
-
-  // void showErrorMessage(String message) {
-  //   final snakbar = SnackBar(
-  //     content: Text(
-  //       message,
-  //       style: const TextStyle(color: Colors.white),
-  //     ),
-  //     backgroundColor: (Colors.red),
-  //   );
-  //   ScaffoldMessenger.of(context).showSnackBar(snakbar);
-  // }
 }
